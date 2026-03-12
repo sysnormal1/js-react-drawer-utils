@@ -1,0 +1,55 @@
+{
+  "name": "@sysnormal/react-drawer-utils",
+  "package": "@sysnormal/react-drawer-utils",
+  "version": "1.0.0",
+  "author": "aalencarvz@gmail.com",
+  "license": "ISC",
+  "type": "module",
+  "description": "a common sysnormal react drawer utils",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest --verbose",
+    "build": "tsc"
+  },
+  "keywords": [
+    "sysnormal",
+    "javascript",
+    "js",
+    "react",
+    "drawer"
+  ],
+  "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
+    "@types/jquery": "^4.0.0",
+    "@types/lodash": "^4.17.24",
+    "@types/node": "^25.4.0",
+    "cross-env": "^10.1.0",
+    "debug": "^4.4.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router": "^7.13.1",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aalencarv/common-utils": "file:D:/PROJECTS/INFORMATIC/libs/js/ts/node/common-utils",
+    "@sysnormal/sso-js-integrations": "file:../../../security/sso/sso-js-integrations/sysnormal-sso-js-integrations-1.3.0.tgz",
+    "jquery": "^4.0.0",
+    "lodash": "^4.17.23"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@mui/icons-material": "^7",
+    "@mui/material": "^7",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19",
+    "react-router": "^7"
+  }
+}
