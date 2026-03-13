@@ -80,6 +80,7 @@ export function mountDrawerMenuItem(
             result = <ListItemButton
                 key={`${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`}
                 {...linkProps}
+                //{...params.listItemProps}
                 component={Link} 
                 title={text}          
                 sx={{

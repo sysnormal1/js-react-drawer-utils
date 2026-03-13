@@ -4,7 +4,7 @@ import { toBool } from '@aalencarv/common-utils';
 import { Box, Typography } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import React from "react";
-import RootLayout from "./RootLayout.js";
+import Root from "./Root.js";
 export default function ErrorPage(props) {
     let error = useRouteError();
     console.error(error);
@@ -33,6 +33,6 @@ export default function ErrorPage(props) {
             "."),
         React.createElement(Typography, { variant: "body2", sx: { fontStyle: "italic" }, color: "text.secondary" }, props?.translater ? (error.statusText || error.message) : (error.statusText || error.message))));
     return toBool(props.showAsPopup || false) !== false
-        ? React.createElement(RootLayout, { title: props.title || 'registers', leftDrawer: { active: false } }, content)
+        ? React.createElement(Root, { title: props.title || 'registers', leftDrawer: { active: false } }, content)
         : content;
 }

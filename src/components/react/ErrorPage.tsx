@@ -4,7 +4,7 @@ import { toBool } from '@aalencarv/common-utils';
 import { Box, Typography } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import React from "react";
-import RootLayout from "./RootLayout.js";
+import Root from "./Root.js";
 
 
 export default function ErrorPage(props?: any) {
@@ -54,12 +54,12 @@ export default function ErrorPage(props?: any) {
 
 
   return toBool(props.showAsPopup || false) !== false
-      ? <RootLayout 
+      ? <Root 
           title={props.title || 'registers'}
           leftDrawer={{active:false}}
       >
           {content}
-      </RootLayout>
+      </Root>
       : content
   ;
 }

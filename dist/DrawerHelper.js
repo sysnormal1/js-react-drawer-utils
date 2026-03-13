@@ -53,7 +53,9 @@ export function mountDrawerMenuItem(params) {
                     linkProps.target = params.menuItem?.target || "_blank";
                     linkProps.rel = "noopener noreferrer";
                 }
-                result = React.createElement(ListItemButton, { key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, ...linkProps, component: Link, title: text, sx: {
+                result = React.createElement(ListItemButton, { key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, ...linkProps, 
+                    //{...params.listItemProps}
+                    component: Link, title: text, sx: {
                         minWidth: 1,
                         width: 'fit-content !important'
                     }, onClick: params.listItemProps?.onClick },
