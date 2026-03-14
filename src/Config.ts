@@ -1,4 +1,3 @@
-import { hasValue } from "@aalencarv/common-utils";
 
 export type ConfigParams = {
     ssoResourcetypeScreenId?: number;

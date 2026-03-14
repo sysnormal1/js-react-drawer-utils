@@ -13,13 +13,13 @@ import Root from "./components/react/Root.js";
 import ErrorPage from "./components/react/ErrorPage.js";
 
 
-export function mountDrawerMenuItem(
-    params: {
-        menuItem: ResourcePermissionData,
-        currentViewRoute?: string,
-        listItemProps?: ListItemWithSubProps
-    }
-) : ReactNode | null | undefined {
+export type MountDrawerMenuItemParams = {
+    menuItem: ResourcePermissionData,
+    currentViewRoute?: string,
+    listItemProps?: ListItemWithSubProps
+}
+
+export function mountDrawerMenuItem(params: MountDrawerMenuItemParams) : ReactNode | null | undefined {
     let result: ReactNode | null | undefined = null;
     try {
         const configs: ConfigParams = getConfigs();
@@ -103,64 +103,269 @@ export function mountDrawerMenuItem(
 }
 
 
+/**
+ * Parameters used by {@link mountBrowserRouterItem}.
+ *
+ * This structure contains the information required to transform
+ * a permission resource entry into a React Router {@link RouteObject}.
+ *
+ * @remarks
+ * The function processes a {@link ResourcePermissionData} node and
+ * recursively converts its children into route definitions.
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link AuthorizationParams}
+ */
+export type MountBrowserRouterItemParams = {
 
-export function mountBrowserRouterItem(
-    params: {
-        menuItem: ResourcePermissionData;
-        mappedResources: {[key:string]:{
+    /**
+     * Resource entry representing a menu or route item.
+     *
+     * @see {@link ResourcePermissionData}
+     */
+    menuItem: ResourcePermissionData;
+
+    /**
+     * Map of application routes and their corresponding React elements.
+     *
+     * The key represents the resource path and the value contains the
+     * configuration used to resolve the React element to render.
+     */
+    mappedResources: {
+        [key: string]: {
+            /**
+             * Function responsible for returning the React element
+             * associated with the resource path.
+             */
             getElement: () => ReactNode
-        }};
-        currentBrowserObject: RouteObject[];
-        authContextGetter?: () => AuthorizationParams;
-        translater?: Translater;
-    }
-) : void {
-    try {
-      if (hasValue(params.menuItem.resourcePath)) {
-        if (params.mappedResources[params.menuItem.resourcePath]) {          
-          let routine: RouteObject = {
-            path:params.menuItem.resourcePath,
-            //element: 
-            element: <DefaultScreen 
-              key={params.menuItem.resourcePath} //to force re-render component to reset states when change resourcePath, that correponts to location.pathname
-              topBarTitle={params.menuItem.resourceName}
-              authContextGetter={params.authContextGetter}
-              translater={params.translater}
-            >
-              {params.mappedResources[params.menuItem.resourcePath].getElement()}
-            </DefaultScreen>
-          } 
-          params.currentBrowserObject.push(routine);
         }
-      }
-      if (hasValue(params.menuItem.children)) {        
-        for(let key in (params.menuItem.children || [])) {
-            mountBrowserRouterItem({
-                ...params,
-                menuItem: params.menuItem.children[key]
-            });
-        } 
-      } 
+    };
+
+    /**
+     * Target array where the generated {@link RouteObject} instances
+     * will be appended.
+     */
+    currentBrowserObject: RouteObject[];
+
+    /**
+     * Getter used to obtain the current authorization context.
+     *
+     * Implemented as a function to avoid stale closure issues.
+     *
+     * @see {@link AuthorizationParams}
+     */
+    authContextGetter?: () => AuthorizationParams;
+
+    /**
+     * Translation function used to localize resource names.
+     *
+     * @see {@link Translater}
+     */
+    translater?: Translater;
+}
+
+/**
+ * Converts a {@link ResourcePermissionData} entry into a React Router route.
+ *
+ * This function recursively traverses the resource permission tree
+ * returned by the authorization service and creates the corresponding
+ * {@link RouteObject} instances used by `createBrowserRouter`.
+ *
+ * @remarks
+ * Only resources that have a matching entry in `mappedResources`
+ * will generate routes.
+ *
+ * Each generated route is wrapped by {@link DefaultScreen}, which
+ * ensures that the component is rendered only when the user has
+ * permission to access the resource.
+ *
+ * Child resources are processed recursively to build the complete
+ * router structure.
+ *
+ * @param params {@link MountBrowserRouterItemParams}
+ *
+ * @example
+ * ```ts
+ * mountBrowserRouterItem({
+ *   menuItem: resource,
+ *   mappedResources,
+ *   currentBrowserObject: routes,
+ *   authContextGetter
+ * })
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link DefaultScreen}
+ */
+export function mountBrowserRouterItem(params: MountBrowserRouterItemParams): void {
+
+    try {
+
+        if (hasValue(params.menuItem.resourcePath)) {
+
+            if (params.mappedResources[params.menuItem.resourcePath]) {
+
+                let routine: RouteObject = {
+                    path: params.menuItem.resourcePath,
+                    element: (
+                        <DefaultScreen
+                            key={params.menuItem.resourcePath}
+                            /* 
+                             Forces component re-render when the route path changes.
+                             This ensures the permission state is reset when
+                             navigating to a different resource.
+                            */
+                            topBarTitle={params.menuItem.resourceName}
+                            authContextGetter={params.authContextGetter}
+                            translater={params.translater}
+                        >
+                            {params.mappedResources[params.menuItem.resourcePath].getElement()}
+                        </DefaultScreen>
+                    )
+                }
+
+                params.currentBrowserObject.push(routine);
+            }
+        }
+
+        if (hasValue(params.menuItem.children)) {
+
+            for (let key in (params.menuItem.children || [])) {
+
+                mountBrowserRouterItem({
+                    ...params,
+                    menuItem: params.menuItem.children[key]
+                });
+
+            }
+        }
+
     } catch (e) {
-      console.error(e);
+        console.error(e);
     }
 }
 
-export async function mountBrowserRouterObject(
-    params: {
-        mappedResources: {[key:string]:{
-            getElement: () => ReactNode
-        }};
-        authContextGetter?: ()=>AuthorizationParams;
-        translater?: Translater;
-        parser?: (...others: any)=>any;
-        msgNotHasPermissions?: string;
-    }
-): Promise<RouteObject[]>{    
+
+
+/**
+ * Parameters used to mount the Browser Router object with dynamic resources.
+ */
+export type MountBrowserRouterObjectParams = {
+
+    /**
+     * Map of application resources.
+     * 
+     * The key represents the resource path and the value contains the configuration
+     * used to render the React element associated with that path.
+     */
+    mappedResources: {
+        [key: string]: {
+            /**
+             * Function responsible for returning the React element that should be
+             * rendered for the given resource path.
+             */
+            getElement: () => ReactNode;
+        };
+    };
+
+    /**
+     * Function that returns the current authorization context.
+     * 
+     * Implemented as a getter to avoid stale closure issues.
+     * 
+     * @see {@link import("@sysnormal/sso-js-integrations").AuthorizationParams}
+     */
+    authContextGetter: () => AuthorizationParams;
+
+    /**
+     * Full URL used to retrieve the list of allowed resources.
+     * 
+     * This can also be configured through the library initialization config.
+     */
+    url?: string;
+
+    /**
+     * Alternative to `url`.
+     * 
+     * Represents the endpoint path used to retrieve the allowed resources.
+     * Can also be configured during the initialization phase.
+     */
+    endpoint?: string;
+
+    /**
+     * System identifier used by the SSO server or the destination system.
+     * 
+     * Can also be configured in the initialization configuration.
+     */
+    systemId?: number;
+
+    /**
+     * Translation function used to translate resource names.
+     * 
+     * Commonly an i18n translation function such as `i18n.t`.
+     */
+    translater?: Translater;
+
+    /**
+     * Parser responsible for converting stored HTML (such as icons from the database)
+     * into renderable React content.
+     */
+    parser?: (...others: any[]) => any;
+
+    /**
+     * Message displayed when the user does not have permission to access a resource.
+     */
+    msgNotHasPermissions?: string;
+};
+
+
+/**
+ * Builds the `RouteObject[]` configuration used by `createBrowserRouter`.
+ *
+ * This function dynamically generates the application routes based on the
+ * resources returned by the authorization service. Only routes that the
+ * current agent is allowed to access will be included.
+ *
+ * The generated structure also injects the root layout component and
+ * a fallback error route.
+ *
+ * @async
+ * @param params See {@link MountBrowserRouterObjectParams}. Configuration parameters used to resolve authorized resources
+ * and build the router structure.
+ *
+ * @returns A promise that resolves to a list of `RouteObject` instances
+ * compatible with `createBrowserRouter`.
+ *
+ * @remarks
+ * This function internally calls the authorization service to retrieve the
+ * allowed resources for the current agent. Each allowed resource is then
+ * transformed into a `RouteObject` using `mountBrowserRouterItem`.
+ *
+ * If the user has no allowed resources, a fallback route displaying a
+ * "no permissions" message is created instead.
+ *
+ * @example
+ * ```ts
+ * const router = createBrowserRouter(
+ *   await mountBrowserRouterObject({
+ *     mappedResources,
+ *     authContextGetter: () => authContext
+ *   })
+ * );
+ * ```
+ *
+ * @since 1.0.0
+ */
+export async function mountBrowserRouterObject(params: MountBrowserRouterObjectParams): Promise<RouteObject[]>{    
     let result : RouteObject[] = [];    
     try {
         const configs = getConfigs();
-        let agentAllowedResources = await getAgentAllowedResources({authContextGetter: params.authContextGetter});
+        let agentAllowedResources = await getAgentAllowedResources({
+            authContextGetter: params.authContextGetter,
+            ssoUrl: params.url,
+            ssoEndpoint: params.endpoint,
+            ssoSystemId: params.systemId
+        });
         result = [{
             path: "/",
             element: <Root menuData={agentAllowedResources?.data || []} parser={params.parser} translater={params.translater}/>

@@ -8,41 +8,134 @@ import { AuthorizationParams, getResourcePermission, ResourcePermissionData } fr
 import { AccessDenied } from "./AccessDenied.js";
 import { Loading } from "./Loading.js";
 
+/**
+ * Props accepted by {@link DefaultScreen}.
+ *
+ * This component acts as a permission-aware wrapper that controls whether
+ * its children should be rendered based on the current user's access rights.
+ *
+ * @remarks
+ * The component automatically resolves resource permissions using the
+ * current route path and the provided authorization context.
+ *
+ * @see {@link DefaultResourceProps}
+ * @see {@link ResourcePermissionData}
+ * @see {@link AuthorizationParams}
+ */
 export type DefaultScreenProps =
-  /*Omit<*/React.ComponentProps<"div">/*, "children">*/ & DefaultResourceProps &{
-  //children?: React.JSX.Element | ReactNode | () => React.JSX.Element | ReactNode;
-  topBarTitle?: string;
-  translater?: Translater;
-  authContextGetter?: ()=>AuthorizationParams;
+  React.ComponentProps<"div"> &
+  DefaultResourceProps & {
+
+    /**
+     * Optional title used by the top bar of the screen.
+     */
+    topBarTitle?: string;
+
+    /**
+     * Translation function used to localize text messages.
+     *
+     * Typically mapped to an i18n function such as `i18n.t`.
+     *
+     * @see {@link Translater}
+     */
+    translater?: Translater;
+
+    /**
+     * Function used to retrieve the current authorization context.
+     *
+     * Implemented as a getter to avoid stale closure issues.
+     *
+     * @returns The current authorization parameters.
+     *
+     * @see {@link AuthorizationParams}
+     */
+    authContextGetter?: () => AuthorizationParams;
+  }
+
+/**
+ * Generates the initial reducer state for {@link DefaultScreen}.
+ *
+ * @param props Optional initial props.
+ * @returns Initial state object used by the reducer.
+ */
+function initialStates(props?: any): any {
+  return {
+    ...defaultInitialResourceState(props)
+  }
 }
 
-function initialStates(props?: any) : any {
-    return {
-        ...defaultInitialResourceState(props)
-    }
-}
-
+/**
+ * Permission-aware screen wrapper component.
+ *
+ * This component automatically checks whether the current user
+ * has permission to access the resource associated with the
+ * current route path.
+ *
+ * @remarks
+ * The component performs the following workflow:
+ *
+ * 1. Detects the current route using `useLocation`
+ * 2. Requests the resource permission from the SSO service
+ * 3. Displays a loading state while the permission is being resolved
+ * 4. Renders the children if access is allowed
+ * 5. Displays an access denied view otherwise
+ *
+ * The resolved permission is stored in the component state and
+ * optionally propagated to an external reducer if provided.
+ *
+ * @param props {@link DefaultScreenProps}
+ *
+ * @example
+ * ```tsx
+ * <DefaultScreen authContextGetter={() => authContext}>
+ *   <Dashboard />
+ * </DefaultScreen>
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link getResourcePermission}
+ */
 export default function DefaultScreen(props: DefaultScreenProps) {
+
   const location = useLocation();
-  const [state, dispatch] = useReducer(defaultReducer, initialStates(props));    
+  const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
 
   useEffect(() => {
-    localStorage?.setItem('lastLocation', location.pathname);
-    //appContext.setTopBarTitle(props.topBarTitle); @todo reimplement
-    //appContext.setTopBarChildren(null); @todo reimplement
 
-    if (!state?.loadedPermission && !state?.loadingPermission) {        
+    localStorage?.setItem('lastLocation', location.pathname);
+
+    if (!state?.loadedPermission && !state?.loadingPermission) {
       loadResourcePermission();
     }
-  }, [location?.pathname, props?.authContextGetter, state?.loadedPermission, state?.loadingPermission, state?.permission]);
 
+  }, [
+    location?.pathname,
+    props?.authContextGetter,
+    state?.loadedPermission,
+    state?.loadingPermission,
+    state?.permission
+  ]);
+
+  /**
+   * Loads the permission associated with the current route.
+   *
+   * This function queries the SSO authorization service
+   * to determine whether the current agent has access
+   * to the resource represented by the route path.
+   *
+   * The result is stored in the reducer state and optionally
+   * propagated to the parent reducer.
+   */
   async function loadResourcePermission() {
+
     const payload: any = {
-      loadingPermission: false,      
+      loadingPermission: false,
       permission: null
     }
+
     try {
-      if (!state.loadedPermission && !state.loadingPermission) {        
+
+      if (!state.loadedPermission && !state.loadingPermission) {
 
         dispatch({
           type: 'SET_DATA',
@@ -50,6 +143,7 @@ export default function DefaultScreen(props: DefaultScreenProps) {
             loadingPermission: true
           }
         });
+
         if (typeof props?.dispatch === "function") {
           props.dispatch({
             type: 'SET_DATA',
@@ -58,38 +152,49 @@ export default function DefaultScreen(props: DefaultScreenProps) {
             }
           });
         }
-       
-        let resourcePermission: DefaultDataSwap<ResourcePermissionData[]> | DefaultDataSwap<ResourcePermissionData> = await getResourcePermission({
-          resourcePath: location.pathname,
-          authContextGetter: props?.authContextGetter
-        });
+
+        let resourcePermission:
+          DefaultDataSwap<ResourcePermissionData[]> |
+          DefaultDataSwap<ResourcePermissionData> =
+          await getResourcePermission({
+            resourcePath: location.pathname,
+            authContextGetter: props?.authContextGetter
+          });
 
         payload.loadedPermission = true;
+
         if (resourcePermission?.success) {
-          payload.permission = typeOf(resourcePermission.data) === "array" ? (resourcePermission.data || [])[0] : resourcePermission.data || null;
+          payload.permission =
+            typeOf(resourcePermission.data) === "array"
+              ? (resourcePermission.data || [])[0]
+              : resourcePermission.data || null;
         } else {
           console.error(resourcePermission);
         }
       }
+
     } catch (e) {
       console.error(e);
     } finally {
+
       dispatch({
         type: 'SET_DATA',
         payload: payload
       });
+
       if (typeof props?.dispatch === "function") {
-          props.dispatch({
-            type: 'SET_DATA',
-            payload: payload
-          });
-        }
+        props.dispatch({
+          type: 'SET_DATA',
+          payload: payload
+        });
+      }
     }
   }
 
   return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
     ? <Loading translater={props?.translater} />
-    : toBool(state.permission?.resourcePermissionAllowedAccess) && toBool(state.permission?.resourcePermissionAllowedView)
+    : toBool(state.permission?.resourcePermissionAllowedAccess) &&
+      toBool(state.permission?.resourcePermissionAllowedView)
       ? props.children
       : <AccessDenied translater={props?.translater} />
 }

@@ -1,66 +1,166 @@
 import { Collapse, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { useState } from "react";
-import $ from 'jquery';
-import { DrawRounded, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import React from "react";
 import { Translater } from "./ViewsHelper.js";
 
+/**
+ * Properties used by {@link ListItemWithSub}.
+ *
+ * @remarks
+ * This component represents a list item that can expand to reveal
+ * nested content. It is commonly used to build hierarchical
+ * navigation menus such as sidebars or drawers.
+ *
+ * The component internally manages its open/closed state but allows
+ * external hooks through callbacks.
+ */
 export type ListItemWithSubProps = {
+
+    /**
+     * Text displayed in the list item.
+     */
     text?: string;
-    icon?: any
+
+    /**
+     * Icon displayed at the start of the list item.
+     */
+    icon?: any;
+
+    /**
+     * Determines whether the item should be initially expanded.
+     */
     initialOpened?: boolean;
+
+    /**
+     * Optional theme identifier used to customize rendering.
+     */
     theme?: string | null | undefined;
+
+    /**
+     * Callback executed when the list item is clicked.
+     *
+     * This is triggered after the internal expand/collapse state changes.
+     */
     onClick?: any;
-    component?: any;    
+
+    /**
+     * Optional component used to render the list item container.
+     *
+     * This is typically used to integrate with routing libraries
+     * such as React Router.
+     */
+    component?: any;
+
+    /**
+     * Additional properties forwarded to the link or routing component.
+     */
     linkProps?: any;
+
+    /**
+     * Callback triggered when the expand animation completes.
+     */
     onEntered?: any;
+
+    /**
+     * Callback triggered when the collapse animation completes.
+     */
     onExited?: any;
+
+    /**
+     * Nested content rendered when the item is expanded.
+     *
+     * Usually contains additional list items representing
+     * child navigation entries.
+     */
     children?: any;
+
+    /**
+     * Optional translation helper used to resolve localized text.
+     */
     translater?: Translater;
+
+    /**
+     * Optional parser used to transform the provided data
+     * before rendering.
+     */
     parser?: any;
 }
-export default function ListItemWithSub(props: ListItemWithSubProps) {
-    const [opened,setOpened] = useState(props.initialOpened || false);
 
-    function handleOpen(event?: any){
-        /*if (!opened) {
-            setTimeout(()=>{
-                $(".MuiDrawer-root").attr("theme", props.theme || '');
-                $(".MuiDrawer-root").parent().attr("theme", props.theme || '');
-                $(".MuiDrawer-root").find("path").attr("fill", props?.theme === 'dark' ? "white" : "black");
-              },50);
-        }*/
+/**
+ * Expandable list item component used to render hierarchical menus.
+ *
+ * @remarks
+ * This component is designed to simplify the creation of nested
+ * navigation structures, such as sidebar menus.
+ *
+ * It displays a clickable list item that toggles a collapsible
+ * container containing its children.
+ *
+ * Internally it manages its open/closed state using React state,
+ * initialized through the `initialOpened` property.
+ *
+ * The component is compatible with routing libraries by allowing
+ * a custom `component` and `linkProps` to be provided.
+ *
+ * @param props Component configuration properties.
+ *
+ * @example
+ * ```tsx
+ * <ListItemWithSub
+ *   text="Users"
+ *   icon={<PeopleIcon />}
+ *   initialOpened={true}
+ * >
+ *   <ListItemButton component={Link} to="/users/list">
+ *      Users List
+ *   </ListItemButton>
+ * </ListItemWithSub>
+ * ```
+ */
+export default function ListItemWithSub(props: ListItemWithSubProps) {
+
+    const [opened, setOpened] = useState(props.initialOpened || false);
+
+    function handleOpen(event?: any) {
+
         setOpened(!opened);
+
         if (typeof props.onClick == 'function') {
             props.onClick(event);
         }
     }
 
-    return <div>
-        <ListItemButton
-            onClick={handleOpen}
-            component={props.component}
-            title={props.text}
-            {...props.linkProps}
-            sx={{
-                width:'fit-content !important'
-            }}
-        >
-            <ListItemIcon>
-                {props.icon}
-            </ListItemIcon>
-            <ListItemText> 
-                {props.text}
-            </ListItemText>
-            {opened ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse 
-            in={opened} 
-            sx={{marginLeft:'2em'}} 
-            onEntered={props.onEntered}
-            onExited={props.onExited}                
-        >
-            {props.children}
-        </Collapse>
-    </div>    
+    return (
+        <div>
+            <ListItemButton
+                onClick={handleOpen}
+                component={props.component}
+                title={props.text}
+                {...props.linkProps}
+                sx={{
+                    width: 'fit-content !important'
+                }}
+            >
+                <ListItemIcon>
+                    {props.icon}
+                </ListItemIcon>
+
+                <ListItemText>
+                    {props.text}
+                </ListItemText>
+
+                {opened ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+
+            <Collapse
+                in={opened}
+                sx={{ marginLeft: '2em' }}
+                onEntered={props.onEntered}
+                onExited={props.onExited}
+            >
+                {props.children}
+            </Collapse>
+        </div>
+    );
 }
