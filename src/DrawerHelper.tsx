@@ -13,92 +13,239 @@ import Root from "./components/react/Root.js";
 import ErrorPage from "./components/react/ErrorPage.js";
 
 
+/**
+ * Parameters used by {@link mountDrawerMenuItem}.
+ *
+ * @remarks
+ * This structure defines the information required to convert a
+ * {@link ResourcePermissionData} node into a React menu element.
+ */
 export type MountDrawerMenuItemParams = {
+
+    /**
+     * Resource node returned from the SSO permission API.
+     *
+     * Each node represents a system resource that may contain
+     * child resources forming a hierarchical structure.
+     */
     menuItem: ResourcePermissionData,
+
+    /**
+     * Current route path used to construct nested routes.
+     */
     currentViewRoute?: string,
+
+    /**
+     * Optional configuration forwarded to {@link ListItemWithSub}.
+     */
     listItemProps?: ListItemWithSubProps
 }
 
-export function mountDrawerMenuItem(params: MountDrawerMenuItemParams) : ReactNode | null | undefined {
-    let result: ReactNode | null | undefined = null;
-    try {
-        const configs: ConfigParams = getConfigs();
-        const text: string = _.capitalize(typeof params.listItemProps?.translater === "function" ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase()) : params.menuItem.resourceName);
-        const icon: any = typeof params.listItemProps?.parser === "function" ? params.listItemProps.parser(params.menuItem.resourceIcon) : params.menuItem.resourceIcon;
-        if (hasValue(params.menuItem?.children)) {
-            let children: any[] = [];
-            
-            for(let key in params.menuItem.children) {
-                if (toBool(firstValid([params.menuItem.children[key].resourceShowInMenu,true])))
-                    children.push(params.menuItem.children[key]);
-            } 
+/**
+ * Recursively builds a React drawer menu from a resource tree.
+ *
+ * @remarks
+ * This function converts a {@link ResourcePermissionData} hierarchy
+ * into a Material UI navigation structure composed of:
+ *
+ * - {@link ListItemWithSub} for nodes with children
+ * - {@link ListItemButton} for leaf nodes
+ *
+ * The resulting structure can be used directly inside a navigation
+ * drawer or sidebar component.
+ *
+ * The function automatically:
+ *
+ * - filters resources marked as hidden from the menu
+ * - sorts resources by `resourceNumericOrder`
+ * - resolves icons using the provided parser
+ * - resolves labels using the provided translator
+ * - generates navigation routes for screen resources
+ *
+ * Resources with children are rendered as expandable menu items,
+ * while leaf nodes become navigation links.
+ *
+ * If the resource type matches the configured screen type
+ * (`ssoResourcetypeScreenId`), the item becomes a router link.
+ *
+ * @param params Configuration parameters for menu generation.
+ *
+ * @returns A React node representing the menu item, or `null`
+ * if the resource should not be rendered.
+ *
+ * @example
+ * ```tsx
+ * const menu = resources.map(resource =>
+ *   mountDrawerMenuItem({
+ *     menuItem: resource,
+ *     currentViewRoute: "/app",
+ *     listItemProps: {
+ *       translater: t,
+ *       parser: parseIcon
+ *     }
+ *   })
+ * )
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link ListItemWithSub}
+ */
+export function mountDrawerMenuItem(
+    params: MountDrawerMenuItemParams
+): ReactNode | null | undefined {
 
-            children.sort((a,b)=>(a.resourceNumericOrder || a.resourceId) - (b.resourceNumericOrder || b.resourceId));
-            for(let key in children) {
+    let result: ReactNode | null | undefined = null;
+
+    try {
+
+        const configs: ConfigParams = getConfigs();
+
+        const text: string =
+            _.capitalize(
+                typeof params.listItemProps?.translater === "function"
+                    ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase())
+                    : params.menuItem.resourceName
+            );
+
+        const icon: any =
+            typeof params.listItemProps?.parser === "function"
+                ? params.listItemProps.parser(params.menuItem.resourceIcon)
+                : params.menuItem.resourceIcon;
+
+        if (hasValue(params.menuItem?.children)) {
+
+            let children: any[] = [];
+
+            for (let key in params.menuItem.children) {
+
+                if (toBool(firstValid([params.menuItem.children[key].resourceShowInMenu, true])))
+                    children.push(params.menuItem.children[key]);
+            }
+
+            children.sort((a, b) =>
+                (a.resourceNumericOrder || a.resourceId) -
+                (b.resourceNumericOrder || b.resourceId)
+            );
+
+            for (let key in children) {
+
                 children[key] = mountDrawerMenuItem({
                     ...params,
                     menuItem: children[key],
-                    currentViewRoute: params.currentViewRoute + "/"+ children[key].resourceName.trim().toLowerCase()
-                })
+                    currentViewRoute:
+                        params.currentViewRoute +
+                        "/" +
+                        children[key].resourceName.trim().toLowerCase()
+                });
             }
 
+            let linkProps: any = undefined;
 
-            let linkProps : any = undefined;
             if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId) {
-                let showChildrenAsPopup = toBool(firstValid([localStorage?.getItem('showChildrenAsPopup'),configs.showResourceAsPopup]));
+
+                let showChildrenAsPopup =
+                    toBool(firstValid([
+                        localStorage?.getItem('showChildrenAsPopup'),
+                        configs.showResourceAsPopup
+                    ]));
+
                 linkProps = {
-                    to:params.menuItem.resourcePath || (params.currentViewRoute + "/" + params.menuItem.resourceName.trim().toLowerCase().replace(/\s/g,'_')),
+                    to:
+                        params.menuItem.resourcePath ||
+                        (
+                            params.currentViewRoute +
+                            "/" +
+                            params.menuItem.resourceName
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s/g, '_')
+                        )
                 };
+
                 if (showChildrenAsPopup || params.menuItem?.target) {
+
                     linkProps.target = params.menuItem?.target || "_blank";
                     linkProps.rel = "noopener noreferrer";
                 }
             }
 
-            result = <ListItemWithSub 
-                {...params.listItemProps}
-                key={`${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`}
-                text={text} 
-                icon={icon}
-                component={params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId?Link:undefined}
-                linkProps={linkProps}
-            >  
-                <List disablePadding={true} sx={{marginLeft:1}}>                    
-                    {children}
-                </List>
-            </ListItemWithSub>
-        } else {
-            if (toBool(firstValid([params.menuItem.resourceShowInMenu,true]))) {        
-            let linkProps : any = {
-                to:params.menuItem.resourcePath || params.menuItem.resourcePath || (params.currentViewRoute + "/" + params.menuItem.resourceName.trim().toLowerCase().replace(/\s/g,'_')),
-            };
-            let showChildrenAsPopup = toBool(firstValid([localStorage?.getItem('showChildrenAsPopup'),configs.showResourceAsPopup]));
-            if (showChildrenAsPopup || params.menuItem?.target) {
-                linkProps.target = params.menuItem?.target || "_blank";
-                linkProps.rel = "noopener noreferrer";
-            }
-            result = <ListItemButton
-                key={`${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`}
-                {...linkProps}
-                //{...params.listItemProps}
-                component={Link} 
-                title={text}          
-                sx={{
-                    minWidth:1,
-                    width:'fit-content !important'
-                }}
-                onClick={params.listItemProps?.onClick}
+            result =
+                <ListItemWithSub
+                    {...params.listItemProps}
+                    key={`${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`}
+                    text={text}
+                    icon={icon}
+                    component={
+                        params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId
+                            ? Link
+                            : undefined
+                    }
+                    linkProps={linkProps}
                 >
-                <ListItemIcon>
-                    {icon} 
-                </ListItemIcon>
-                <ListItemText primary={text} />
-                </ListItemButton>;
+
+                    <List disablePadding={true} sx={{ marginLeft: 1 }}>
+                        {children}
+                    </List>
+
+                </ListItemWithSub>
+
+        } else {
+
+            if (toBool(firstValid([params.menuItem.resourceShowInMenu, true]))) {
+
+                let linkProps: any = {
+                    to:
+                        params.menuItem.resourcePath ||
+                        (
+                            params.currentViewRoute +
+                            "/" +
+                            params.menuItem.resourceName
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s/g, '_')
+                        )
+                };
+
+                let showChildrenAsPopup =
+                    toBool(firstValid([
+                        localStorage?.getItem('showChildrenAsPopup'),
+                        configs.showResourceAsPopup
+                    ]));
+
+                if (showChildrenAsPopup || params.menuItem?.target) {
+
+                    linkProps.target = params.menuItem?.target || "_blank";
+                    linkProps.rel = "noopener noreferrer";
+                }
+
+                result =
+                    <ListItemButton
+                        key={`${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`}
+                        {...linkProps}
+                        component={Link}
+                        title={text}
+                        sx={{
+                            minWidth: 1,
+                            width: 'fit-content !important'
+                        }}
+                        onClick={params.listItemProps?.onClick}
+                    >
+
+                        <ListItemIcon>
+                            {icon}
+                        </ListItemIcon>
+
+                        <ListItemText primary={text} />
+
+                    </ListItemButton>;
             }
         }
+
     } catch (e) {
-      console.error(e);
+
+        console.error(e);
     }
+
     return result;
 }
 

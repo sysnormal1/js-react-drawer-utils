@@ -7,6 +7,24 @@ import React from "react";
 import { Outlet } from "react-router";
 import TopAppBar from "./TopAppBar.js";
 import LeftDrawer from "./LeftDrawer.js";
+/**
+ * Initializes the internal state of the Root layout component.
+ *
+ * @remarks
+ * This function merges default layout values with the properties
+ * provided to the component.
+ *
+ * It defines configuration for:
+ *
+ * - application bar
+ * - navigation drawer
+ * - outlet rendering
+ * - menu data
+ *
+ * @param props Optional component properties.
+ *
+ * @returns Initial reducer state.
+ */
 function initialStates(props) {
     return {
         loading: false,
@@ -29,10 +47,12 @@ function initialStates(props) {
 }
 ;
 /**
- * reducer setter state
- * @param {*} state
- * @param {*} action
- * @returns
+ * Internal reducer used to update the layout state.
+ *
+ * @param state Current state.
+ * @param action Reducer action.
+ *
+ * @returns Updated state.
  */
 function reducer(state, action) {
     switch (action.type) {
@@ -42,38 +62,71 @@ function reducer(state, action) {
             return state;
     }
 }
+/**
+ * Root layout component used to render the main application structure.
+ *
+ * @remarks
+ * This component provides the base UI layout for applications using
+ * the SSO integration library.
+ *
+ * It is responsible for rendering:
+ *
+ * - the application top bar ({@link TopAppBar})
+ * - the navigation drawer ({@link LeftDrawer})
+ * - the main application content area
+ *
+ * The navigation menu is dynamically generated from resource
+ * permission data using {@link mountDrawerMenuItem}.
+ *
+ * The component also handles:
+ *
+ * - responsive drawer behavior on small screens
+ * - automatic drawer width adjustment
+ * - persistence of drawer collapsed state
+ *
+ * When no `children` are provided, the component renders
+ * the React Router {@link Outlet}.
+ *
+ * @param props Root component properties.
+ *
+ * @example
+ * ```tsx
+ * <Root
+ *   menuData={resources}
+ *   parser={parseIcon}
+ *   translater={t}
+ * />
+ * ```
+ */
 export default function Root(props) {
     const theme = useTheme();
     const leftDrawerRef = useRef(null);
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // Ajuste o breakpoint conforme necessário.
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [state, dispatch] = useReducer(reducer, initialStates(props));
-    console.log('xxxxxxxxxxxx nx', hasValue(leftDrawerRef?.current));
+    /**
+     * Adjusts the drawer width based on visible menu items.
+     *
+     * @remarks
+     * This method calculates the maximum width required
+     * to display nested menu items without clipping.
+     */
     function adjustWidth(event) {
-        let timeAnimation = (theme?.transitions?.duration?.enteringScreen || 300) + 50;
-        console.log('xxxxxxxxxxxx n1', event.target);
-        //setTimeout(()=>{
-        console.log('xxxxxxxxxxxx n2');
         if (hasValue(leftDrawerRef?.current)) {
-            console.log('xxxxxxxxxxxx n3');
             const drawerElement = leftDrawerRef.current;
             let subs = drawerElement.querySelectorAll(":not(.MuiCollapse-hidden) .MuiCollapse-entered>.MuiCollapse-wrapper>.MuiCollapse-wrapperInner>.MuiList-root>.MuiListItemButton-root");
             subs = Array.from(subs).filter((el) => {
                 const style = window.getComputedStyle(el);
-                return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+                return (style.display !== "none" &&
+                    style.visibility !== "hidden" &&
+                    style.opacity !== "0");
             });
             let maiorSoma = 0;
             subs.forEach((el) => {
                 const rect = el.getBoundingClientRect();
                 const computedStyle = window.getComputedStyle(el);
-                // Inclui margens no cálculo
                 const marginLeft = parseFloat(computedStyle.marginLeft) || 0;
                 const marginRight = parseFloat(computedStyle.marginRight) || 0;
-                // Cálculo completo: deslocamento + largura + margens
                 let somaAtual = rect.left + rect.width + marginLeft + marginRight;
-                if (somaAtual > 0) {
-                    //somaAtual += paddingLeft + paddingRight;
-                }
-                // Atualiza o maior valor
                 if (somaAtual > maiorSoma) {
                     maiorSoma = somaAtual;
                 }
@@ -82,7 +135,6 @@ export default function Root(props) {
                 maiorSoma = 240;
             else
                 maiorSoma += 16;
-            console.log('xxxxxxxxxxxx n3', maiorSoma);
             dispatch({
                 type: 'SET_DATA',
                 payload: {
@@ -93,9 +145,15 @@ export default function Root(props) {
                 }
             });
         }
-        //},timeAnimation)
     }
     ;
+    /**
+     * Handles menu item click events.
+     *
+     * @remarks
+     * On small screens the drawer will automatically collapse
+     * after a navigation link is clicked.
+     */
     function handleMenuItemClick(event) {
         if (isSmallScreen) {
             let link = $(event.target).closest("a[href]");
@@ -112,6 +170,11 @@ export default function Root(props) {
             }
         }
     }
+    /**
+     * Builds drawer menu items from the provided resource data.
+     *
+     * @param menuData Resource permission tree.
+     */
     function mountMenuItems(menuData) {
         try {
             let agentMenu = [];
@@ -124,7 +187,6 @@ export default function Root(props) {
                             onEntered: adjustWidth,
                             onExited: adjustWidth,
                             onClick: handleMenuItemClick,
-                            //theme: themeContext.theme, todo 2026-03-13 - reimplement
                             parser: props.parser,
                             translater: props.translater
                         }
@@ -142,9 +204,17 @@ export default function Root(props) {
             console.error(e);
         }
     }
+    /**
+     * Updates menu items whenever the menu data changes.
+     */
     useEffect(() => {
         mountMenuItems(state.menuData);
     }, [state.menuData]);
+    /**
+     * Handles drawer collapse state changes.
+     *
+     * @param collapsed New collapsed state.
+     */
     function handleCollapse(collapsed) {
         localStorage?.setItem('leftDrawerCollapsed', collapsed ? "true" : "false");
         dispatch({
@@ -159,8 +229,12 @@ export default function Root(props) {
     }
     return React.createElement(Box, { sx: { display: 'flex' } },
         React.createElement(CssBaseline, null),
-        state.appBar.active && React.createElement(TopAppBar, { hasLeftDrawer: state.leftDrawer.active, leftDrawerCollapsed: state.leftDrawer.collapsed, setLeftDrawerCollapsed: state.leftDrawer.active ? handleCollapse : false, leftDrawerWidth: state.leftDrawer.width }),
-        state.leftDrawer.active && React.createElement(LeftDrawer, { ref: leftDrawerRef, collapsed: state.leftDrawer.collapsed, setCollapsed: handleCollapse, width: state.leftDrawer.width, items: state.menuItems || [] }),
+        state.appBar.active &&
+            React.createElement(TopAppBar, { hasLeftDrawer: state.leftDrawer.active, leftDrawerCollapsed: state.leftDrawer.collapsed, setLeftDrawerCollapsed: state.leftDrawer.active
+                    ? handleCollapse
+                    : false, leftDrawerWidth: state.leftDrawer.width }),
+        state.leftDrawer.active &&
+            React.createElement(LeftDrawer, { ref: leftDrawerRef, collapsed: state.leftDrawer.collapsed, setCollapsed: handleCollapse, width: state.leftDrawer.width, items: state.menuItems || [] }),
         React.createElement(Box, { component: "main", sx: {
                 flexGrow: 1,
                 padding: 1,
@@ -172,6 +246,6 @@ export default function Root(props) {
             } }, props.children
             ? props.children
             : state.outlet.active
-                ? React.createElement(Outlet /*context={[setTopBarTitle]}*/, null)
+                ? React.createElement(Outlet, null)
                 : null));
 }

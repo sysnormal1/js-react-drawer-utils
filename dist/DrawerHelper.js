@@ -9,58 +9,134 @@ import DefaultScreen from "./components/react/DefaultScreen.js";
 import { getAgentAllowedResources } from "@sysnormal/sso-js-integrations";
 import Root from "./components/react/Root.js";
 import ErrorPage from "./components/react/ErrorPage.js";
+/**
+ * Recursively builds a React drawer menu from a resource tree.
+ *
+ * @remarks
+ * This function converts a {@link ResourcePermissionData} hierarchy
+ * into a Material UI navigation structure composed of:
+ *
+ * - {@link ListItemWithSub} for nodes with children
+ * - {@link ListItemButton} for leaf nodes
+ *
+ * The resulting structure can be used directly inside a navigation
+ * drawer or sidebar component.
+ *
+ * The function automatically:
+ *
+ * - filters resources marked as hidden from the menu
+ * - sorts resources by `resourceNumericOrder`
+ * - resolves icons using the provided parser
+ * - resolves labels using the provided translator
+ * - generates navigation routes for screen resources
+ *
+ * Resources with children are rendered as expandable menu items,
+ * while leaf nodes become navigation links.
+ *
+ * If the resource type matches the configured screen type
+ * (`ssoResourcetypeScreenId`), the item becomes a router link.
+ *
+ * @param params Configuration parameters for menu generation.
+ *
+ * @returns A React node representing the menu item, or `null`
+ * if the resource should not be rendered.
+ *
+ * @example
+ * ```tsx
+ * const menu = resources.map(resource =>
+ *   mountDrawerMenuItem({
+ *     menuItem: resource,
+ *     currentViewRoute: "/app",
+ *     listItemProps: {
+ *       translater: t,
+ *       parser: parseIcon
+ *     }
+ *   })
+ * )
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link ListItemWithSub}
+ */
 export function mountDrawerMenuItem(params) {
     let result = null;
     try {
         const configs = getConfigs();
-        const text = _.capitalize(typeof params.listItemProps?.translater === "function" ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase()) : params.menuItem.resourceName);
-        const icon = typeof params.listItemProps?.parser === "function" ? params.listItemProps.parser(params.menuItem.resourceIcon) : params.menuItem.resourceIcon;
+        const text = _.capitalize(typeof params.listItemProps?.translater === "function"
+            ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase())
+            : params.menuItem.resourceName);
+        const icon = typeof params.listItemProps?.parser === "function"
+            ? params.listItemProps.parser(params.menuItem.resourceIcon)
+            : params.menuItem.resourceIcon;
         if (hasValue(params.menuItem?.children)) {
             let children = [];
             for (let key in params.menuItem.children) {
                 if (toBool(firstValid([params.menuItem.children[key].resourceShowInMenu, true])))
                     children.push(params.menuItem.children[key]);
             }
-            children.sort((a, b) => (a.resourceNumericOrder || a.resourceId) - (b.resourceNumericOrder || b.resourceId));
+            children.sort((a, b) => (a.resourceNumericOrder || a.resourceId) -
+                (b.resourceNumericOrder || b.resourceId));
             for (let key in children) {
                 children[key] = mountDrawerMenuItem({
                     ...params,
                     menuItem: children[key],
-                    currentViewRoute: params.currentViewRoute + "/" + children[key].resourceName.trim().toLowerCase()
+                    currentViewRoute: params.currentViewRoute +
+                        "/" +
+                        children[key].resourceName.trim().toLowerCase()
                 });
             }
             let linkProps = undefined;
             if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId) {
-                let showChildrenAsPopup = toBool(firstValid([localStorage?.getItem('showChildrenAsPopup'), configs.showResourceAsPopup]));
+                let showChildrenAsPopup = toBool(firstValid([
+                    localStorage?.getItem('showChildrenAsPopup'),
+                    configs.showResourceAsPopup
+                ]));
                 linkProps = {
-                    to: params.menuItem.resourcePath || (params.currentViewRoute + "/" + params.menuItem.resourceName.trim().toLowerCase().replace(/\s/g, '_')),
+                    to: params.menuItem.resourcePath ||
+                        (params.currentViewRoute +
+                            "/" +
+                            params.menuItem.resourceName
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s/g, '_'))
                 };
                 if (showChildrenAsPopup || params.menuItem?.target) {
                     linkProps.target = params.menuItem?.target || "_blank";
                     linkProps.rel = "noopener noreferrer";
                 }
             }
-            result = React.createElement(ListItemWithSub, { ...params.listItemProps, key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, text: text, icon: icon, component: params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId ? Link : undefined, linkProps: linkProps },
-                React.createElement(List, { disablePadding: true, sx: { marginLeft: 1 } }, children));
+            result =
+                React.createElement(ListItemWithSub, { ...params.listItemProps, key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, text: text, icon: icon, component: params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId
+                        ? Link
+                        : undefined, linkProps: linkProps },
+                    React.createElement(List, { disablePadding: true, sx: { marginLeft: 1 } }, children));
         }
         else {
             if (toBool(firstValid([params.menuItem.resourceShowInMenu, true]))) {
                 let linkProps = {
-                    to: params.menuItem.resourcePath || params.menuItem.resourcePath || (params.currentViewRoute + "/" + params.menuItem.resourceName.trim().toLowerCase().replace(/\s/g, '_')),
+                    to: params.menuItem.resourcePath ||
+                        (params.currentViewRoute +
+                            "/" +
+                            params.menuItem.resourceName
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s/g, '_'))
                 };
-                let showChildrenAsPopup = toBool(firstValid([localStorage?.getItem('showChildrenAsPopup'), configs.showResourceAsPopup]));
+                let showChildrenAsPopup = toBool(firstValid([
+                    localStorage?.getItem('showChildrenAsPopup'),
+                    configs.showResourceAsPopup
+                ]));
                 if (showChildrenAsPopup || params.menuItem?.target) {
                     linkProps.target = params.menuItem?.target || "_blank";
                     linkProps.rel = "noopener noreferrer";
                 }
-                result = React.createElement(ListItemButton, { key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, ...linkProps, 
-                    //{...params.listItemProps}
-                    component: Link, title: text, sx: {
-                        minWidth: 1,
-                        width: 'fit-content !important'
-                    }, onClick: params.listItemProps?.onClick },
-                    React.createElement(ListItemIcon, null, icon),
-                    React.createElement(ListItemText, { primary: text }));
+                result =
+                    React.createElement(ListItemButton, { key: `${params.menuItem.resourceParentId || params.menuItem.resourceId}-${params.menuItem.resourceId}`, ...linkProps, component: Link, title: text, sx: {
+                            minWidth: 1,
+                            width: 'fit-content !important'
+                        }, onClick: params.listItemProps?.onClick },
+                        React.createElement(ListItemIcon, null, icon),
+                        React.createElement(ListItemText, { primary: text }));
             }
         }
     }
@@ -69,14 +145,52 @@ export function mountDrawerMenuItem(params) {
     }
     return result;
 }
+/**
+ * Converts a {@link ResourcePermissionData} entry into a React Router route.
+ *
+ * This function recursively traverses the resource permission tree
+ * returned by the authorization service and creates the corresponding
+ * {@link RouteObject} instances used by `createBrowserRouter`.
+ *
+ * @remarks
+ * Only resources that have a matching entry in `mappedResources`
+ * will generate routes.
+ *
+ * Each generated route is wrapped by {@link DefaultScreen}, which
+ * ensures that the component is rendered only when the user has
+ * permission to access the resource.
+ *
+ * Child resources are processed recursively to build the complete
+ * router structure.
+ *
+ * @param params {@link MountBrowserRouterItemParams}
+ *
+ * @example
+ * ```ts
+ * mountBrowserRouterItem({
+ *   menuItem: resource,
+ *   mappedResources,
+ *   currentBrowserObject: routes,
+ *   authContextGetter
+ * })
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link DefaultScreen}
+ */
 export function mountBrowserRouterItem(params) {
     try {
         if (hasValue(params.menuItem.resourcePath)) {
             if (params.mappedResources[params.menuItem.resourcePath]) {
                 let routine = {
                     path: params.menuItem.resourcePath,
-                    //element: 
-                    element: React.createElement(DefaultScreen, { key: params.menuItem.resourcePath, topBarTitle: params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement())
+                    element: (React.createElement(DefaultScreen, { key: params.menuItem.resourcePath, 
+                        /*
+                         Forces component re-render when the route path changes.
+                         This ensures the permission state is reset when
+                         navigating to a different resource.
+                        */
+                        topBarTitle: params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement()))
                 };
                 params.currentBrowserObject.push(routine);
             }
@@ -94,11 +208,53 @@ export function mountBrowserRouterItem(params) {
         console.error(e);
     }
 }
+/**
+ * Builds the `RouteObject[]` configuration used by `createBrowserRouter`.
+ *
+ * This function dynamically generates the application routes based on the
+ * resources returned by the authorization service. Only routes that the
+ * current agent is allowed to access will be included.
+ *
+ * The generated structure also injects the root layout component and
+ * a fallback error route.
+ *
+ * @async
+ * @param params See {@link MountBrowserRouterObjectParams}. Configuration parameters used to resolve authorized resources
+ * and build the router structure.
+ *
+ * @returns A promise that resolves to a list of `RouteObject` instances
+ * compatible with `createBrowserRouter`.
+ *
+ * @remarks
+ * This function internally calls the authorization service to retrieve the
+ * allowed resources for the current agent. Each allowed resource is then
+ * transformed into a `RouteObject` using `mountBrowserRouterItem`.
+ *
+ * If the user has no allowed resources, a fallback route displaying a
+ * "no permissions" message is created instead.
+ *
+ * @example
+ * ```ts
+ * const router = createBrowserRouter(
+ *   await mountBrowserRouterObject({
+ *     mappedResources,
+ *     authContextGetter: () => authContext
+ *   })
+ * );
+ * ```
+ *
+ * @since 1.0.0
+ */
 export async function mountBrowserRouterObject(params) {
     let result = [];
     try {
         const configs = getConfigs();
-        let agentAllowedResources = await getAgentAllowedResources({ authContextGetter: params.authContextGetter });
+        let agentAllowedResources = await getAgentAllowedResources({
+            authContextGetter: params.authContextGetter,
+            ssoUrl: params.url,
+            ssoEndpoint: params.endpoint,
+            ssoSystemId: params.systemId
+        });
         result = [{
                 path: "/",
                 element: React.createElement(Root, { menuData: agentAllowedResources?.data || [], parser: params.parser, translater: params.translater })

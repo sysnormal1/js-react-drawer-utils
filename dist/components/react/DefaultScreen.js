@@ -6,22 +6,73 @@ import React from "react";
 import { getResourcePermission } from "@sysnormal/sso-js-integrations";
 import { AccessDenied } from "./AccessDenied.js";
 import { Loading } from "./Loading.js";
+/**
+ * Generates the initial reducer state for {@link DefaultScreen}.
+ *
+ * @param props Optional initial props.
+ * @returns Initial state object used by the reducer.
+ */
 function initialStates(props) {
     return {
         ...defaultInitialResourceState(props)
     };
 }
+/**
+ * Permission-aware screen wrapper component.
+ *
+ * This component automatically checks whether the current user
+ * has permission to access the resource associated with the
+ * current route path.
+ *
+ * @remarks
+ * The component performs the following workflow:
+ *
+ * 1. Detects the current route using `useLocation`
+ * 2. Requests the resource permission from the SSO service
+ * 3. Displays a loading state while the permission is being resolved
+ * 4. Renders the children if access is allowed
+ * 5. Displays an access denied view otherwise
+ *
+ * The resolved permission is stored in the component state and
+ * optionally propagated to an external reducer if provided.
+ *
+ * @param props {@link DefaultScreenProps}
+ *
+ * @example
+ * ```tsx
+ * <DefaultScreen authContextGetter={() => authContext}>
+ *   <Dashboard />
+ * </DefaultScreen>
+ * ```
+ *
+ * @see {@link ResourcePermissionData}
+ * @see {@link getResourcePermission}
+ */
 export default function DefaultScreen(props) {
     const location = useLocation();
     const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
     useEffect(() => {
         localStorage?.setItem('lastLocation', location.pathname);
-        //appContext.setTopBarTitle(props.topBarTitle); @todo reimplement
-        //appContext.setTopBarChildren(null); @todo reimplement
         if (!state?.loadedPermission && !state?.loadingPermission) {
             loadResourcePermission();
         }
-    }, [location?.pathname, props?.authContextGetter, state?.loadedPermission, state?.loadingPermission, state?.permission]);
+    }, [
+        location?.pathname,
+        props?.authContextGetter,
+        state?.loadedPermission,
+        state?.loadingPermission,
+        state?.permission
+    ]);
+    /**
+     * Loads the permission associated with the current route.
+     *
+     * This function queries the SSO authorization service
+     * to determine whether the current agent has access
+     * to the resource represented by the route path.
+     *
+     * The result is stored in the reducer state and optionally
+     * propagated to the parent reducer.
+     */
     async function loadResourcePermission() {
         const payload = {
             loadingPermission: false,
@@ -49,7 +100,10 @@ export default function DefaultScreen(props) {
                 });
                 payload.loadedPermission = true;
                 if (resourcePermission?.success) {
-                    payload.permission = typeOf(resourcePermission.data) === "array" ? (resourcePermission.data || [])[0] : resourcePermission.data || null;
+                    payload.permission =
+                        typeOf(resourcePermission.data) === "array"
+                            ? (resourcePermission.data || [])[0]
+                            : resourcePermission.data || null;
                 }
                 else {
                     console.error(resourcePermission);
@@ -74,7 +128,8 @@ export default function DefaultScreen(props) {
     }
     return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
         ? React.createElement(Loading, { translater: props?.translater })
-        : toBool(state.permission?.resourcePermissionAllowedAccess) && toBool(state.permission?.resourcePermissionAllowedView)
+        : toBool(state.permission?.resourcePermissionAllowedAccess) &&
+            toBool(state.permission?.resourcePermissionAllowedView)
             ? props.children
             : React.createElement(AccessDenied, { translater: props?.translater });
 }
