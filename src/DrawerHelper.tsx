@@ -368,7 +368,10 @@ export function mountBrowserRouterItem(params: MountBrowserRouterItemParams): vo
                         >
                             {params.mappedResources[params.menuItem.resourcePath].getElement()}
                         </DefaultScreen>
-                    )
+                    ),
+                    handle: {
+                        originalPath: params.menuItem.resourcePath
+                    }
                 }
 
                 params.currentBrowserObject.push(routine);

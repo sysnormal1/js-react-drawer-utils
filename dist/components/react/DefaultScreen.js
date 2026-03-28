@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useMatches } from "react-router";
 import { toBool, typeOf } from "@aalencarv/common-utils";
 import { defaultInitialResourceState, defaultReducer } from "./ViewsHelper.js";
 import React from "react";
@@ -50,6 +50,8 @@ function initialStates(props) {
  */
 export default function DefaultScreen(props) {
     const location = useLocation();
+    //const params = useParams();
+    const matches = useMatches();
     const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
     useEffect(() => {
         localStorage?.setItem('lastLocation', location.pathname);
@@ -94,8 +96,10 @@ export default function DefaultScreen(props) {
                         }
                     });
                 }
+                let currentRoute = matches[matches.length - 1];
+                let resourcePath = (currentRoute.handle || {}).originalPath || location.pathname;
                 let resourcePermission = await getResourcePermission({
-                    resourcePath: location.pathname,
+                    resourcePath: resourcePath,
                     authContextGetter: props?.authContextGetter
                 });
                 payload.loadedPermission = true;

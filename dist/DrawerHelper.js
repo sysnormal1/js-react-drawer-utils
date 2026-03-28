@@ -190,7 +190,10 @@ export function mountBrowserRouterItem(params) {
                          This ensures the permission state is reset when
                          navigating to a different resource.
                         */
-                        topBarTitle: params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement()))
+                        topBarTitle: params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement())),
+                    handle: {
+                        originalPath: params.menuItem.resourcePath
+                    }
                 };
                 params.currentBrowserObject.push(routine);
             }

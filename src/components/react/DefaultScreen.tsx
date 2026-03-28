@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
-import { useLocation } from "react-router";
-import { DefaultDataSwap, toBool, typeOf } from "@aalencarv/common-utils";
+import { useLocation, useMatch, useMatches, useParams } from "react-router";
+import { DefaultDataSwap, hasValue, toBool, typeOf } from "@aalencarv/common-utils";
 import _ from "lodash";
 import { defaultInitialResourceState, defaultReducer, DefaultResourceProps, Translater } from "./ViewsHelper.js";
 import React from "react";
@@ -96,8 +96,9 @@ function initialStates(props?: any): any {
  * @see {@link getResourcePermission}
  */
 export default function DefaultScreen(props: DefaultScreenProps) {
-
   const location = useLocation();
+  //const params = useParams();
+  const matches = useMatches();
   const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
 
   useEffect(() => {
@@ -153,11 +154,12 @@ export default function DefaultScreen(props: DefaultScreenProps) {
           });
         }
 
-        let resourcePermission:
-          DefaultDataSwap<ResourcePermissionData[]> |
-          DefaultDataSwap<ResourcePermissionData> =
-          await getResourcePermission({
-            resourcePath: location.pathname,
+        let currentRoute = matches[matches.length - 1];
+        let resourcePath : string = (currentRoute.handle || {} as any).originalPath || location.pathname;
+        
+
+        let resourcePermission : DefaultDataSwap<ResourcePermissionData[]> | DefaultDataSwap<ResourcePermissionData> = await getResourcePermission({
+            resourcePath: resourcePath,
             authContextGetter: props?.authContextGetter
           });
 
