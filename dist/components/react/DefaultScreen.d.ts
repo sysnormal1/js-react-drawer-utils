@@ -1,6 +1,6 @@
 import { DefaultResourceProps, Translater } from "./ViewsHelper.js";
 import React from "react";
-import { AuthorizationParams } from "@sysnormal/sso-js-integrations";
+import { AuthorizationParams } from "@sysnormal/sso-js-integration";
 /**
  * Props accepted by {@link DefaultScreen}.
  *

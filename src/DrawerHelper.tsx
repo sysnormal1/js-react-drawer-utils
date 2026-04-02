@@ -7,7 +7,7 @@ import { ConfigParams, getConfigs } from "./Config.js";
 import { Link } from "react-router";
 import DefaultScreen from "./components/react/DefaultScreen.js";
 import { Translater } from "./components/react/ViewsHelper.js";
-import { AuthorizationParams, getAgentAllowedResources, ResourcePermissionData } from "@sysnormal/sso-js-integrations";
+import { AuthorizationParams, getAgentAllowedResources, ResourcePermissionData } from "@sysnormal/sso-js-integration";
 import { RouteObject } from "react-router";
 import Root from "./components/react/Root.js";
 import ErrorPage from "./components/react/ErrorPage.js";
@@ -141,7 +141,9 @@ export function mountDrawerMenuItem(
 
             let linkProps: any = undefined;
 
-            if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId) {
+            if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId
+                || hasValue(params.menuItem.resourcePath)
+            ) {
 
                 let showChildrenAsPopup =
                     toBool(firstValid([
@@ -362,7 +364,7 @@ export function mountBrowserRouterItem(params: MountBrowserRouterItemParams): vo
                              This ensures the permission state is reset when
                              navigating to a different resource.
                             */
-                            topBarTitle={params.menuItem.resourceName}
+                            topBarTitle={typeof params.translater === "function" ? _.capitalize(params.translater(params.menuItem.resourceName?.trim().toLowerCase())) : params.menuItem.resourceName}
                             authContextGetter={params.authContextGetter}
                             translater={params.translater}
                         >
@@ -423,7 +425,7 @@ export type MountBrowserRouterObjectParams = {
      * 
      * Implemented as a getter to avoid stale closure issues.
      * 
-     * @see {@link import("@sysnormal/sso-js-integrations").AuthorizationParams}
+     * @see {@link import("@sysnormal/sso-js-integration").AuthorizationParams}
      */
     authContextGetter: () => AuthorizationParams;
 
@@ -466,6 +468,8 @@ export type MountBrowserRouterObjectParams = {
      * Message displayed when the user does not have permission to access a resource.
      */
     msgNotHasPermissions?: string;
+
+    themeContextGetter: () => any;
 };
 
 
@@ -507,7 +511,7 @@ export type MountBrowserRouterObjectParams = {
  * @since 1.0.0
  */
 export async function mountBrowserRouterObject(params: MountBrowserRouterObjectParams): Promise<RouteObject[]>{    
-    let result : RouteObject[] = [];    
+    let result : RouteObject[] = [];
     try {
         const configs = getConfigs();
         let agentAllowedResources = await getAgentAllowedResources({
@@ -518,7 +522,13 @@ export async function mountBrowserRouterObject(params: MountBrowserRouterObjectP
         });
         result = [{
             path: "/",
-            element: <Root menuData={agentAllowedResources?.data || []} parser={params.parser} translater={params.translater}/>
+            element: <Root 
+                menuData={agentAllowedResources?.data || []} 
+                parser={params.parser} 
+                translater={params.translater}
+                authContextGetter={params.authContextGetter}
+                themeContextGetter={params.themeContextGetter}
+            />
         },{
             path: "/online",
             element:"ok"
@@ -566,6 +576,7 @@ export async function mountBrowserRouterObject(params: MountBrowserRouterObjectP
     } catch (e) {
         console.error(e);
     }
+
     return result;
 }
 

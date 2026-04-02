@@ -7,6 +7,7 @@ import React from "react";
 import { Outlet } from "react-router";
 import TopAppBar from "./TopAppBar.js";
 import LeftDrawer from "./LeftDrawer.js";
+import { RootProvider } from "./RootProvider.js";
 /**
  * Initializes the internal state of the Root layout component.
  *
@@ -227,25 +228,26 @@ export default function Root(props) {
             }
         });
     }
-    return React.createElement(Box, { sx: { display: 'flex' } },
-        React.createElement(CssBaseline, null),
-        state.appBar.active &&
-            React.createElement(TopAppBar, { hasLeftDrawer: state.leftDrawer.active, leftDrawerCollapsed: state.leftDrawer.collapsed, setLeftDrawerCollapsed: state.leftDrawer.active
-                    ? handleCollapse
-                    : false, leftDrawerWidth: state.leftDrawer.width }),
-        state.leftDrawer.active &&
-            React.createElement(LeftDrawer, { ref: leftDrawerRef, collapsed: state.leftDrawer.collapsed, setCollapsed: handleCollapse, width: state.leftDrawer.width, items: state.menuItems || [] }),
-        React.createElement(Box, { component: "main", sx: {
-                flexGrow: 1,
-                padding: 1,
-                marginTop: 7,
-                height: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
-                minHeight: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
-                maxHeight: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
-                width: `calc(100% - ${state.leftDrawer.width}px)`,
-            } }, props.children
-            ? props.children
-            : state.outlet.active
-                ? React.createElement(Outlet, null)
-                : null));
+    return React.createElement(RootProvider, null,
+        React.createElement(Box, { sx: { display: 'flex' } },
+            React.createElement(CssBaseline, null),
+            state.appBar.active &&
+                React.createElement(TopAppBar, { hasLeftDrawer: state.leftDrawer.active, leftDrawerCollapsed: state.leftDrawer.collapsed, setLeftDrawerCollapsed: state.leftDrawer.active
+                        ? handleCollapse
+                        : false, leftDrawerWidth: state.leftDrawer.width, authContextGetter: props.authContextGetter, translater: props.translater, themeContextGetter: props.themeContextGetter }),
+            state.leftDrawer.active &&
+                React.createElement(LeftDrawer, { ref: leftDrawerRef, collapsed: state.leftDrawer.collapsed, setCollapsed: handleCollapse, width: state.leftDrawer.width, items: state.menuItems || [] }),
+            React.createElement(Box, { component: "main", sx: {
+                    flexGrow: 1,
+                    padding: 1,
+                    marginTop: 7,
+                    height: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
+                    minHeight: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
+                    maxHeight: `calc(100% - ${state.appBar.height}px + ${theme.spacing(0)})`,
+                    width: `calc(100% - ${state.leftDrawer.width}px)`,
+                } }, props.children
+                ? props.children
+                : state.outlet.active
+                    ? React.createElement(Outlet, null)
+                    : null)));
 }

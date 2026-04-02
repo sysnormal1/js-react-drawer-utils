@@ -1,7 +1,7 @@
 import { ListItemWithSubProps } from "./components/react/ListItemWithSub.js";
 import { ReactNode } from "react";
 import { Translater } from "./components/react/ViewsHelper.js";
-import { AuthorizationParams, ResourcePermissionData } from "@sysnormal/sso-js-integrations";
+import { AuthorizationParams, ResourcePermissionData } from "@sysnormal/sso-js-integration";
 import { RouteObject } from "react-router";
 /**
  * Parameters used by {@link mountDrawerMenuItem}.
@@ -190,7 +190,7 @@ export type MountBrowserRouterObjectParams = {
      *
      * Implemented as a getter to avoid stale closure issues.
      *
-     * @see {@link import("@sysnormal/sso-js-integrations").AuthorizationParams}
+     * @see {@link import("@sysnormal/sso-js-integration").AuthorizationParams}
      */
     authContextGetter: () => AuthorizationParams;
     /**
@@ -227,6 +227,7 @@ export type MountBrowserRouterObjectParams = {
      * Message displayed when the user does not have permission to access a resource.
      */
     msgNotHasPermissions?: string;
+    themeContextGetter: () => any;
 };
 /**
  * Builds the `RouteObject[]` configuration used by `createBrowserRouter`.

@@ -1,4 +1,4 @@
-import { ResourcePermissionData } from "@sysnormal/sso-js-integrations";
+import { ResourcePermissionData } from "@sysnormal/sso-js-integration";
 import type { ActionDispatch, AnyActionArg } from "react";
 /**
  * Translation function used to convert text keys into localized strings.

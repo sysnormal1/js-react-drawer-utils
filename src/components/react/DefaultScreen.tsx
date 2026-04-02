@@ -4,9 +4,10 @@ import { DefaultDataSwap, hasValue, toBool, typeOf } from "@aalencarv/common-uti
 import _ from "lodash";
 import { defaultInitialResourceState, defaultReducer, DefaultResourceProps, Translater } from "./ViewsHelper.js";
 import React from "react";
-import { AuthorizationParams, getResourcePermission, ResourcePermissionData } from "@sysnormal/sso-js-integrations";
+import { AuthorizationParams, getResourcePermission, ResourcePermissionData } from "@sysnormal/sso-js-integration";
 import { AccessDenied } from "./AccessDenied.js";
 import { Loading } from "./Loading.js";
+import { useRootLayout } from "./RootProvider.js";
 
 /**
  * Props accepted by {@link DefaultScreen}.
@@ -100,11 +101,10 @@ export default function DefaultScreen(props: DefaultScreenProps) {
   //const params = useParams();
   const matches = useMatches();
   const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
+  const { setTopBarTitle, setTopBarChildren } = useRootLayout();
 
   useEffect(() => {
-
     localStorage?.setItem('lastLocation', location.pathname);
-
     if (!state?.loadedPermission && !state?.loadingPermission) {
       loadResourcePermission();
     }
@@ -116,6 +116,11 @@ export default function DefaultScreen(props: DefaultScreenProps) {
     state?.loadingPermission,
     state?.permission
   ]);
+
+  useEffect(()=>{
+    setTopBarTitle(props.topBarTitle);
+    setTopBarChildren(null);
+  },[setTopBarTitle, setTopBarChildren, props.topBarTitle]);
 
   /**
    * Loads the permission associated with the current route.

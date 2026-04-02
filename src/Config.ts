@@ -2,6 +2,7 @@
 export type ConfigParams = {
     ssoResourcetypeScreenId?: number;
     showResourceAsPopup?: boolean;
+    themeContextGetter?: ()=>any;
 };
 
 let configs : ConfigParams = {
@@ -12,6 +13,7 @@ let configs : ConfigParams = {
 export function config(params?: ConfigParams) {
     configs = {...configs, ...params};
     Object.freeze(configs);
+    console.debug('new configs',configs);
 }
 
 export function getConfigs() : ConfigParams{

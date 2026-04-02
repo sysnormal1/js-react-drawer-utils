@@ -3,9 +3,10 @@ import { useLocation, useMatches } from "react-router";
 import { toBool, typeOf } from "@aalencarv/common-utils";
 import { defaultInitialResourceState, defaultReducer } from "./ViewsHelper.js";
 import React from "react";
-import { getResourcePermission } from "@sysnormal/sso-js-integrations";
+import { getResourcePermission } from "@sysnormal/sso-js-integration";
 import { AccessDenied } from "./AccessDenied.js";
 import { Loading } from "./Loading.js";
+import { useRootLayout } from "./RootProvider.js";
 /**
  * Generates the initial reducer state for {@link DefaultScreen}.
  *
@@ -53,6 +54,7 @@ export default function DefaultScreen(props) {
     //const params = useParams();
     const matches = useMatches();
     const [state, dispatch] = useReducer(defaultReducer, initialStates(props));
+    const { setTopBarTitle, setTopBarChildren } = useRootLayout();
     useEffect(() => {
         localStorage?.setItem('lastLocation', location.pathname);
         if (!state?.loadedPermission && !state?.loadingPermission) {
@@ -65,6 +67,10 @@ export default function DefaultScreen(props) {
         state?.loadingPermission,
         state?.permission
     ]);
+    useEffect(() => {
+        setTopBarTitle(props.topBarTitle);
+        setTopBarChildren(null);
+    }, [setTopBarTitle, setTopBarChildren, props.topBarTitle]);
     /**
      * Loads the permission associated with the current route.
      *

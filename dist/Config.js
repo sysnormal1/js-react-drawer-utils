@@ -5,6 +5,7 @@ let configs = {
 export function config(params) {
     configs = { ...configs, ...params };
     Object.freeze(configs);
+    console.debug('new configs', configs);
 }
 export function getConfigs() {
     let result = { ...configs };

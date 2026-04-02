@@ -1,4 +1,4 @@
-import { ResourcePermissionData } from "@sysnormal/sso-js-integrations";
+import { ResourcePermissionData } from "@sysnormal/sso-js-integration";
 import type { ActionDispatch, AnyActionArg } from "react";
 
 /**

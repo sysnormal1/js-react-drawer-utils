@@ -6,7 +6,7 @@ import _ from "lodash";
 import { getConfigs } from "./Config.js";
 import { Link } from "react-router";
 import DefaultScreen from "./components/react/DefaultScreen.js";
-import { getAgentAllowedResources } from "@sysnormal/sso-js-integrations";
+import { getAgentAllowedResources } from "@sysnormal/sso-js-integration";
 import Root from "./components/react/Root.js";
 import ErrorPage from "./components/react/ErrorPage.js";
 /**
@@ -86,7 +86,8 @@ export function mountDrawerMenuItem(params) {
                 });
             }
             let linkProps = undefined;
-            if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId) {
+            if (params.menuItem.resourceTypeId == configs.ssoResourcetypeScreenId
+                || hasValue(params.menuItem.resourcePath)) {
                 let showChildrenAsPopup = toBool(firstValid([
                     localStorage?.getItem('showChildrenAsPopup'),
                     configs.showResourceAsPopup
@@ -190,7 +191,7 @@ export function mountBrowserRouterItem(params) {
                          This ensures the permission state is reset when
                          navigating to a different resource.
                         */
-                        topBarTitle: params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement())),
+                        topBarTitle: typeof params.translater === "function" ? _.capitalize(params.translater(params.menuItem.resourceName?.trim().toLowerCase())) : params.menuItem.resourceName, authContextGetter: params.authContextGetter, translater: params.translater }, params.mappedResources[params.menuItem.resourcePath].getElement())),
                     handle: {
                         originalPath: params.menuItem.resourcePath
                     }
@@ -260,7 +261,7 @@ export async function mountBrowserRouterObject(params) {
         });
         result = [{
                 path: "/",
-                element: React.createElement(Root, { menuData: agentAllowedResources?.data || [], parser: params.parser, translater: params.translater })
+                element: React.createElement(Root, { menuData: agentAllowedResources?.data || [], parser: params.parser, translater: params.translater, authContextGetter: params.authContextGetter, themeContextGetter: params.themeContextGetter })
             }, {
                 path: "/online",
                 element: "ok"
