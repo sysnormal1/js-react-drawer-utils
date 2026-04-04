@@ -108,7 +108,7 @@ export function mountDrawerMenuItem(
             );
 
         const icon: any =
-            typeof params.listItemProps?.parser === "function"
+            typeof params.listItemProps?.parser === "function" && hasValue(params.menuItem.resourceIcon)
                 ? params.listItemProps.parser(params.menuItem.resourceIcon)
                 : params.menuItem.resourceIcon;
 
@@ -539,6 +539,7 @@ export async function mountBrowserRouterObject(params: MountBrowserRouterObjectP
         if (agentAllowedResources?.success) {
             if (hasValue(agentAllowedResources.data)) {
                 for(let key in agentAllowedResources.data) {
+                    console.debug("mounting item",agentAllowedResources.data[key]);
                     mountBrowserRouterItem({
                         ...params,
                         menuItem: agentAllowedResources.data[key], 
@@ -576,7 +577,7 @@ export async function mountBrowserRouterObject(params: MountBrowserRouterObjectP
     } catch (e) {
         console.error(e);
     }
-
+    console.debug("result of mountBrowserRouterObject",result);
     return result;
 }
 

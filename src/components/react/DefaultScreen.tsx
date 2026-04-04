@@ -133,7 +133,7 @@ export default function DefaultScreen(props: DefaultScreenProps) {
    * propagated to the parent reducer.
    */
   async function loadResourcePermission() {
-
+    console.debug("INIT loadResourcePermission");
     const payload: any = {
       loadingPermission: false,
       permission: null
@@ -196,7 +196,10 @@ export default function DefaultScreen(props: DefaultScreenProps) {
         });
       }
     }
+    console.debug("END loadResourcePermission", payload);
   }
+
+  console.debug("rendering default screen","loadingPermission",state?.loadingPermission, "loadedPermission",state?.loadedPermission, "permission", state?.permission)
 
   return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
     ? <Loading translater={props?.translater} />

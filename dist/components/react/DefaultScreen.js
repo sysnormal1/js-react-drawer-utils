@@ -82,6 +82,7 @@ export default function DefaultScreen(props) {
      * propagated to the parent reducer.
      */
     async function loadResourcePermission() {
+        console.debug("INIT loadResourcePermission");
         const payload = {
             loadingPermission: false,
             permission: null
@@ -135,7 +136,9 @@ export default function DefaultScreen(props) {
                 });
             }
         }
+        console.debug("END loadResourcePermission", payload);
     }
+    console.debug("rendering default screen", "loadingPermission", state?.loadingPermission, "loadedPermission", state?.loadedPermission, "permission", state?.permission);
     return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
         ? React.createElement(Loading, { translater: props?.translater })
         : toBool(state.permission?.resourcePermissionAllowedAccess) &&

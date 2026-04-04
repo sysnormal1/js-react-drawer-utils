@@ -65,7 +65,7 @@ export function mountDrawerMenuItem(params) {
         const text = _.capitalize(typeof params.listItemProps?.translater === "function"
             ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase())
             : params.menuItem.resourceName);
-        const icon = typeof params.listItemProps?.parser === "function"
+        const icon = typeof params.listItemProps?.parser === "function" && hasValue(params.menuItem.resourceIcon)
             ? params.listItemProps.parser(params.menuItem.resourceIcon)
             : params.menuItem.resourceIcon;
         if (hasValue(params.menuItem?.children)) {
@@ -270,6 +270,7 @@ export async function mountBrowserRouterObject(params) {
         if (agentAllowedResources?.success) {
             if (hasValue(agentAllowedResources.data)) {
                 for (let key in agentAllowedResources.data) {
+                    console.debug("mounting item", agentAllowedResources.data[key]);
                     mountBrowserRouterItem({
                         ...params,
                         menuItem: agentAllowedResources.data[key],
@@ -305,6 +306,7 @@ export async function mountBrowserRouterObject(params) {
     catch (e) {
         console.error(e);
     }
+    console.debug("result of mountBrowserRouterObject", result);
     return result;
 }
 export function openAll(elements) {

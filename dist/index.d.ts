@@ -7,3 +7,4 @@ export { AccessDenied } from "./components/react/AccessDenied.js";
 export { default as DefaultScreen, DefaultScreenProps } from "./components/react/DefaultScreen.js";
 export { Loading } from "./components/react/Loading.js";
 export { useRootLayout } from "./components/react/RootProvider.js";
+export { defaultReducer, setReducerState } from "./components/react/ViewsHelper.js";
