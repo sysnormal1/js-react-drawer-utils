@@ -65,7 +65,7 @@ export function mountDrawerMenuItem(params) {
         const text = _.capitalize(typeof params.listItemProps?.translater === "function"
             ? params.listItemProps.translater(params.menuItem.resourceName.toLowerCase())
             : params.menuItem.resourceName);
-        const icon = typeof params.listItemProps?.parser === "function" && hasValue(params.menuItem.resourceIcon)
+        const icon = typeof params.listItemProps?.parser === "function" && typeof params.menuItem.resourceIcon === 'string' && hasValue(params.menuItem.resourceIcon)
             ? params.listItemProps.parser(params.menuItem.resourceIcon)
             : params.menuItem.resourceIcon;
         if (hasValue(params.menuItem?.children)) {

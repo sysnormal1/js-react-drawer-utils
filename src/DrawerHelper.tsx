@@ -108,7 +108,7 @@ export function mountDrawerMenuItem(
             );
 
         const icon: any =
-            typeof params.listItemProps?.parser === "function" && hasValue(params.menuItem.resourceIcon)
+            typeof params.listItemProps?.parser === "function" && typeof params.menuItem.resourceIcon === 'string' && hasValue(params.menuItem.resourceIcon)
                 ? params.listItemProps.parser(params.menuItem.resourceIcon)
                 : params.menuItem.resourceIcon;
 
