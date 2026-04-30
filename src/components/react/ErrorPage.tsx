@@ -2,9 +2,9 @@ import _ from "lodash";
 import { useRouteError } from "react-router";
 import { toBool } from '@aalencarv/common-utils';
 import { Box, Typography } from "@mui/material";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import React from "react";
 import Root from "./Root.js";
+import { ErrorOutlineOutlined } from "@mui/icons-material";
 
 
 export default function ErrorPage(props?: any) {
@@ -32,7 +32,7 @@ export default function ErrorPage(props?: any) {
       px: 2
     }}
   >
-    <ErrorOutlineIcon sx={{ fontSize: 56, color: "error.main" }} />
+    <ErrorOutlineOutlined sx={{ fontSize: 56, color: "error.main" }} />
 
     <Typography variant="h4">
       {_.capitalize(props?.translater ? props?.translater("oops") : 'oops')}!

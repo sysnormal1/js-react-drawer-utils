@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import { useLocation, useMatches } from "react-router";
 import { toBool, typeOf } from "@aalencarv/common-utils";
 import { defaultInitialResourceState, defaultReducer } from "./ViewsHelper.js";
@@ -17,6 +17,14 @@ function initialStates(props) {
     return {
         ...defaultInitialResourceState(props)
     };
+}
+const DefaultScreenContext = createContext(null);
+export function useDefaultScreenPermission() {
+    const context = useContext(DefaultScreenContext);
+    if (!context) {
+        throw new Error("useDefaultScreenPermission must be used within DefaultScreen");
+    }
+    return context;
 }
 /**
  * Permission-aware screen wrapper component.
@@ -139,10 +147,14 @@ export default function DefaultScreen(props) {
         console.debug("END loadResourcePermission", payload);
     }
     console.debug("rendering default screen", "loadingPermission", state?.loadingPermission, "loadedPermission", state?.loadedPermission, "permission", state?.permission);
-    return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
+    return React.createElement(DefaultScreenContext.Provider, { value: {
+            permission: state?.permission,
+            loading: state?.loadingPermission,
+            loaded: state?.loadedPermission
+        } }, toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
         ? React.createElement(Loading, { translater: props?.translater })
         : toBool(state.permission?.resourcePermissionAllowedAccess) &&
             toBool(state.permission?.resourcePermissionAllowedView)
             ? props.children
-            : React.createElement(AccessDenied, { translater: props?.translater });
+            : React.createElement(AccessDenied, { translater: props?.translater }));
 }

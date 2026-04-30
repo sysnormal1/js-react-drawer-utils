@@ -1,6 +1,6 @@
 import { DefaultResourceProps, Translater } from "./ViewsHelper.js";
 import React from "react";
-import { AuthorizationParams } from "@sysnormal/sso-js-integration";
+import { AuthorizationParams, ResourcePermissionData } from "@sysnormal/sso-js-integration";
 /**
  * Props accepted by {@link DefaultScreen}.
  *
@@ -39,6 +39,12 @@ export type DefaultScreenProps = React.ComponentProps<"div"> & DefaultResourcePr
      */
     authContextGetter?: () => AuthorizationParams;
 };
+export type DefaultScreenContextType = {
+    permission?: ResourcePermissionData | null;
+    loading?: boolean;
+    loaded?: boolean;
+};
+export declare function useDefaultScreenPermission(): DefaultScreenContextType;
 /**
  * Permission-aware screen wrapper component.
  *
@@ -70,4 +76,4 @@ export type DefaultScreenProps = React.ComponentProps<"div"> & DefaultResourcePr
  * @see {@link ResourcePermissionData}
  * @see {@link getResourcePermission}
  */
-export default function DefaultScreen(props: DefaultScreenProps): string | number | bigint | boolean | React.JSX.Element | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined;
+export default function DefaultScreen(props: DefaultScreenProps): React.JSX.Element;

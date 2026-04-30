@@ -4,7 +4,7 @@ export { mountDrawerMenuItem } from "./DrawerHelper.js";
 export { mountBrowserRouterObject } from "./DrawerHelper.js";
 export { defaultInitialResourceState } from "./components/react/ViewsHelper.js";
 export { AccessDenied } from "./components/react/AccessDenied.js";
-export { default as DefaultScreen } from "./components/react/DefaultScreen.js";
+export { default as DefaultScreen, useDefaultScreenPermission } from "./components/react/DefaultScreen.js";
 export { Loading } from "./components/react/Loading.js";
 export { useRootLayout } from "./components/react/RootProvider.js";
 export { defaultReducer, setReducerState } from "./components/react/ViewsHelper.js";

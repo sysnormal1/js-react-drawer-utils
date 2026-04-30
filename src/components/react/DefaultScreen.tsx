@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import { useLocation, useMatch, useMatches, useParams } from "react-router";
 import { DefaultDataSwap, hasValue, toBool, typeOf } from "@aalencarv/common-utils";
 import _ from "lodash";
@@ -63,6 +63,24 @@ function initialStates(props?: any): any {
   return {
     ...defaultInitialResourceState(props)
   }
+}
+
+export type DefaultScreenContextType = {
+  permission?: ResourcePermissionData | null;
+  loading?: boolean;
+  loaded?: boolean;
+};
+
+const DefaultScreenContext = createContext<DefaultScreenContextType | null>(null);
+
+export function useDefaultScreenPermission() {
+  const context = useContext(DefaultScreenContext);
+
+  if (!context) {
+    throw new Error("useDefaultScreenPermission must be used within DefaultScreen");
+  }
+
+  return context;
 }
 
 /**
@@ -201,10 +219,18 @@ export default function DefaultScreen(props: DefaultScreenProps) {
 
   console.debug("rendering default screen","loadingPermission",state?.loadingPermission, "loadedPermission",state?.loadedPermission, "permission", state?.permission)
 
-  return toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
+  return <DefaultScreenContext.Provider
+    value={{
+      permission: state?.permission,
+      loading: state?.loadingPermission,
+      loaded: state?.loadedPermission
+    }}
+  >{
+    toBool(state?.loadingPermission) && !toBool(state?.loadedPermission)
     ? <Loading translater={props?.translater} />
     : toBool(state.permission?.resourcePermissionAllowedAccess) &&
       toBool(state.permission?.resourcePermissionAllowedView)
       ? props.children
       : <AccessDenied translater={props?.translater} />
+  }</DefaultScreenContext.Provider>
 }
