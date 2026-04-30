@@ -13,7 +13,6 @@ import {
   useTheme,
   useMediaQuery
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import _ from "lodash";
 import React, { ReactNode, forwardRef } from "react";
 import { filterMenu } from "../../DrawerHelper.js";
@@ -173,7 +172,7 @@ const LeftDrawer = forwardRef<HTMLDivElement, LeftDrawerProps>(
         ) : (
           <ListItem>
             <ListItemIcon>
-              <LoadingButton loading />
+              <IconButton loading />
             </ListItemIcon>
           </ListItem>
         )}

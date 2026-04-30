@@ -1,6 +1,5 @@
 import { ChevronLeft, SearchOutlined } from "@mui/icons-material";
 import { Divider, Drawer as MuiDrawer, IconButton, InputBase, List, ListItem, ListItemIcon, alpha, styled, useTheme, useMediaQuery } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import { filterMenu } from "../../DrawerHelper.js";
@@ -108,7 +107,7 @@ const LeftDrawer = forwardRef(({ collapsed = false, width = 240, items, translat
             React.createElement(ChevronLeft, null))));
     const contentList = (React.createElement(List, null, items ? (items) : (React.createElement(ListItem, null,
         React.createElement(ListItemIcon, null,
-            React.createElement(LoadingButton, { loading: true }))))));
+            React.createElement(IconButton, { loading: true }))))));
     return isSmallScreen ? (React.createElement(MuiDrawer, { ref: ref, variant: "temporary", open: !collapsed, ...drawerProps },
         contentHeader,
         React.createElement(Divider, null),
