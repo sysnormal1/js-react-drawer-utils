@@ -1,7 +1,7 @@
 {
   "name": "@sysnormal/react-drawer-utils",
   "package": "@sysnormal/react-drawer-utils",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "author": "aalencarvz@gmail.com",
   "license": "ISC",
   "type": "module",
@@ -47,7 +47,7 @@
     "@emotion/styled": ">=7 <=12",
     "@mui/icons-material": ">=7 <=12",
     "@mui/lab": ">=7 <=10",
-    "@mui/material": ">=7 <=12",    
+    "@mui/material": ">=7 <=12",
     "react": ">=17 <=21",
     "react-dom": ">=17 <=21",
     "react-router": ">=5 <=9"
